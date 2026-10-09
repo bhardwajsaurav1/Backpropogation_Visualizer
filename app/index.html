@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroFlow Studio — Neural Network & Backpropagation Visualizer & Analyser</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="logo-section">
+      <div class="logo-icon">🧠</div>
+      <div>
+        <div class="brand-title">NeuroFlow Studio</div>
+      </div>
+      <div class="brand-badge">v1.0 • PURE MATH ENGINE</div>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-pill">
+        <span class="stat-label">Loss:</span>
+        <span class="stat-value" id="statLoss">0.0000</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">Accuracy:</span>
+        <span class="stat-value" id="statMetric">0.0%</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">Epoch:</span>
+        <span class="stat-value" id="statEpoch">0 / 200</span>
+      </div>
+      <button class="btn btn-emerald" id="exportBtn" style="padding:4px 12px; font-size:12px;">📥 Export Code</button>
+    </div>
+  </header>
+
+  <!-- Application Grid -->
+  <div class="app-container">
+
+    <!-- Left Controls Sidebar -->
+    <aside class="sidebar">
+
+      <!-- Dataset Selector -->
+      <div class="sidebar-section">
+        <div class="section-title">📊 Dataset Configuration</div>
+        <div class="control-group">
+          <label for="datasetSelect">Dataset Type</label>
+          <select id="datasetSelect">
+            <option value="moons">Two Interleaving Moons</option>
+            <option value="circles">Concentric Circles</option>
+            <option value="spiral">Archimedean Spiral</option>
+            <option value="xor">XOR Quadrants</option>
+            <option value="blobs">Gaussian Clusters</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Noise Level <span class="label-val" id="noiseVal">0.10</span></label>
+          <input type="range" id="noiseSlider" min="0.0" max="0.4" step="0.02" value="0.10">
+        </div>
+        <button class="btn" id="drawToggleBtn" style="width:100%; margin-top:6px;">🖌️ Paint Custom Points</button>
+      </div>
+
+      <!-- Network Architecture Builder -->
+      <div class="sidebar-section">
+        <div class="section-title">🏗️ Neural Architecture</div>
+        <label>Layer Structure</label>
+        <div class="layer-list" id="layerList"></div>
+        <button class="btn" id="addLayerBtn" style="width:100%; margin-bottom:12px; font-size:12px;">+ Add Hidden Layer</button>
+
+        <div class="control-group">
+          <label for="activationSelect">Hidden Activation</label>
+          <select id="activationSelect">
+            <option value="relu">ReLU (Rectified Linear)</option>
+            <option value="leaky_relu">LeakyReLU (α=0.01)</option>
+            <option value="gelu">GELU (Gaussian Error)</option>
+            <option value="swish">Swish / SiLU (x · σ(x))</option>
+            <option value="tanh">Tanh (Hyperbolic Tangent)</option>
+            <option value="sigmoid">Sigmoid (Logistic)</option>
+            <option value="elu">ELU (Exponential Linear)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="initSelect">Weight Initialization</label>
+          <select id="initSelect">
+            <option value="he_normal">He / Kaiming Normal (Recommended)</option>
+            <option value="xavier_normal">Xavier / Glorot Normal</option>
+            <option value="normal">Standard Normal (σ=0.1)</option>
+            <option value="zero">Zero Init (Symmetry Breaking Demo)</option>
+            <option value="constant">Constant Init (All 0.5)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Hyperparameters -->
+      <div class="sidebar-section">
+        <div class="section-title">⚡ Optimization & Training</div>
+        <div class="control-group">
+          <label for="optimizerSelect">Optimizer</label>
+          <select id="optimizerSelect">
+            <option value="adam">Adam (Adaptive Moments)</option>
+            <option value="adamw">AdamW (Decoupled Decay)</option>
+            <option value="momentum">Momentum SGD (β=0.9)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Learning Rate (η) <span class="label-val" id="lrVal">0.030</span></label>
+          <input type="range" id="lrSlider" min="0.001" max="0.2" step="0.002" value="0.030">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="playPauseBtn">▶ Train</button>
+        <button class="btn" id="resetBtn">🔄 Reset</button>
+      </div>
+
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+
+      <!-- Top Toolbar -->
+      <div class="toolbar">
+        <div class="playback-controls">
+          <button class="btn" id="stepBtn">⏭ Step Pass</button>
+          <button class="btn" id="stepPrevBtn">◀ Step Back</button>
+          <button class="btn" id="stepNextBtn">Step Forward ▶</button>
+        </div>
+        <div style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);">
+          Pure Math Engine • No PyTorch/TensorFlow Blackbox
+        </div>
+      </div>
+
+      <!-- Tabbed Views -->
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="tabGraph">🌐 Neural Graph & Calculus</button>
+        <button class="tab-btn" data-tab="tabBoundary">🗺️ 2D Decision Boundary</button>
+        <button class="tab-btn" data-tab="tabAnalyser">🩺 Health & Gradient Flow</button>
+        <button class="tab-btn" data-tab="tabLandscape">🏔️ 3D Loss Landscape</button>
+      </div>
+
+      <!-- Tab 1: Neural Graph & Calculus Inspector -->
+      <div class="tab-pane active" id="tabGraph">
+        <div class="view-grid">
+          <div class="view-card" style="flex:1;">
+            <div class="view-card-header">
+              <span class="card-title">🌐 Interactive Computational Graph</span>
+              <span style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">Hover node for local ∂L/∂z</span>
+            </div>
+            <div class="canvas-container" id="graphCanvasContainer"></div>
+          </div>
+
+          <div class="view-card">
+            <div class="view-card-header">
+              <span class="card-title">📐 Micro-Step Calculus Inspector</span>
+            </div>
+            <div id="stepDebuggerContainer"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Decision Boundary -->
+      <div class="tab-pane" id="tabBoundary">
+        <div class="view-card" style="height:100%;">
+          <div class="view-card-header">
+            <span class="card-title">🗺️ Real-Time 2D Decision Boundary & Confidence Shader</span>
+            <span style="font-size:11px; color:#94a3b8; font-family:var(--font-mono);">Click or drag to paint custom points</span>
+          </div>
+          <div class="canvas-container" style="min-height:500px;">
+            <canvas id="boundaryCanvas" width="600" height="500"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Health & Gradient Flow Analyser -->
+      <div class="tab-pane" id="tabAnalyser">
+        <div class="view-card" style="height:100%;">
+          <div class="view-card-header">
+            <span class="card-title">🩺 Deep Gradient Flow & Dead Neuron Health Suite</span>
+          </div>
+          <div id="analyserContainer" style="padding:10px 0;"></div>
+        </div>
+      </div>
+
+      <!-- Tab 4: 3D Loss Landscape -->
+      <div class="tab-pane" id="tabLandscape">
+        <div class="view-card" style="height:100%;">
+          <div class="view-card-header">
+            <span class="card-title">🏔️ 3D Subspace Loss Landscape & Optimization Trajectory</span>
+            <span style="font-size:11px; color:#94a3b8; font-family:var(--font-mono);">Interactive 3D Projection</span>
+          </div>
+          <div class="canvas-container" style="min-height:500px;">
+            <canvas id="landscapeCanvas" width="600" height="500"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Tooltip Element -->
+  <div class="tooltip-box" id="nodeTooltip"></div>
+
+  <!-- Export Code Modal -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span style="font-weight:700; color:#f8fafc;">📥 Export Trained Model to Python (NumPy)</span>
+        <button class="btn" id="closeModalBtn" style="padding:2px 8px;">✕</button>
+      </div>
+      <div class="modal-body">
+        <pre class="code-pre" id="exportCodeBlock"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/math_engine.js"></script>
+  <script src="js/computational_graph.js"></script>
+  <script src="js/decision_boundary.js"></script>
+  <script src="js/loss_landscape.js"></script>
+  <script src="js/analyser_dashboard.js"></script>
+  <script src="js/step_debugger.js"></script>
+  <script src="js/main.js"></script>
+
+</body>
+</html>

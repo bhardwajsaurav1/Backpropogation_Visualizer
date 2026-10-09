@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+.vercel/
+.env*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Testing & Cache
+.pytest_cache/
+.coverage
+
+# OS
+.DS_Store
+Thumbs.db
